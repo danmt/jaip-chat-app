@@ -10,6 +10,12 @@
         position: absolute;
         visibility: hidden;
       }
+      #video1 {
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+      }
       #video2 {
         left: 20px;
         bottom: 20px;
@@ -17,24 +23,79 @@
         height: 200px;
         visibility: visible;
       }
+      #canvas {
+        display: block;
+        height: 100vh;
+        width: 100vw;
+      }
+      #tip-overlay {
+        position: absolute;
+        bottom: -120px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        color: #000;
+        padding: 10px;
+      }
+      #container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+      body {
+        margin: 0;
+      }
     </style>
   </head>
   <body>
-    <video id="video1" autoplay></video>
-    <video id="video2" autoplay></video>
-    <canvas id="canvas"></canvas>
+    <div id="container">
+      <video id="video1" autoplay></video>
+      <video id="video2" autoplay></video>
+      <canvas id="canvas"></canvas>
+      <div id="tip-overlay"></div>
+    </div>
 
     <script>
       const video1 = document.getElementById("video1");
       const video2 = document.getElementById("video2");
       const canvas = document.getElementById("canvas");
+      const tipOverlay = document.getElementById("tip-overlay");
       const ctx = canvas.getContext("2d");
+
+      // Tip queue
+      const tipsQueue = [];
+      let isProcessingQueue = false;
 
       function draw() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ctx.drawImage(video1, 0, 0, canvas.width, canvas.height);
         requestAnimationFrame(draw);
+      }
+
+      function processQueue() {
+        if (tipsQueue.length > 0 && !isProcessingQueue) {
+          isProcessingQueue = true;
+          const { message, amount } = tipsQueue.shift();
+          tipOverlay.innerHTML = `<p>${message}</p><p>Tip: ${amount} Ether</p>`;
+
+          // Slide in animation
+          tipOverlay.animate([{ bottom: "-120px" }, { bottom: "20px" }], {
+            duration: 500,
+            fill: "forwards",
+          }).onfinish = () => {
+            // Slide out animation after 10 seconds
+            setTimeout(() => {
+              tipOverlay.animate([{ bottom: "20px" }, { bottom: "-120px" }], {
+                duration: 500,
+                fill: "forwards",
+              }).onfinish = () => {
+                isProcessingQueue = false;
+                processQueue(); // process the next tip in the queue
+              };
+            }, 10000); // 10 seconds
+          };
+        }
       }
 
       async function run() {
@@ -51,6 +112,7 @@
           const contract = TruffleContract(artifact);
           contract.setProvider(window.ethereum);
           const web3 = new Web3();
+          const contractInstance = await contract.deployed();
           const camStream = await navigator.mediaDevices.getUserMedia({
             video: { width: 200, height: 200 },
             audio: false,
@@ -63,7 +125,33 @@
           video1.srcObject = screenStream;
           video1.onloadedmetadata = draw;
 
-          console.log('saul goodman')
+          // Listen for TipReceived event and add to the queue
+          contractInstance.TipReceived(null, (error, response) => {
+            if (error) {
+              console.error("Error on event", error);
+              return;
+            }
+
+            if (
+              response.args.to.toLowerCase() !==
+              window.ethereum.selectedAddress.toLowerCase()
+            ) {
+              return;
+            }
+
+            // Convert tip amount from Wei to Ether
+            const tipAmountInEther = web3.utils.fromWei(
+              response.args.value.toString(),
+              "ether"
+            );
+
+            // Add to queue
+            tipsQueue.push({
+              message: response.args.message,
+              amount: tipAmountInEther,
+            });
+            processQueue();
+          });
         } catch (error) {
           console.error(error);
         }

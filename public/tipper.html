@@ -20,6 +20,8 @@
       const sendTipButton = document.getElementById("sendTip");
       const messageInput = document.getElementById("message");
       const amountInput = document.getElementById("amount");
+      const urlParams = new URLSearchParams(window.location.search);
+      const streamerAddress = urlParams.get('streamer');
 
       async function run() {
         try {
@@ -43,16 +45,16 @@
                 const accounts = await window.ethereum.request({
                   method: "eth_requestAccounts",
                 });
-
+                const tipperAddress = window.ethereum.selectedAddress;
                 const message = messageInput.value;
                 const amount = web3.utils.toWei(amountInput.value, "ether");
 
                 // Get deployed contract
-                let instance = await contract.deployed();
+                const instance = await contract.deployed();
 
                 // Send a tip
-                await instance.sendTip(message, {
-                  from: accounts[0],
+                await instance.sendTip(streamerAddress, message, {
+                  from: tipperAddress,
                   value: amount,
                 });
 
