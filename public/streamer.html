@@ -33,9 +33,40 @@
         position: absolute;
         bottom: -120px;
         right: 20px;
-        background: rgba(255, 255, 255, 0.5);
-        color: #000;
-        padding: 10px;
+        background: rgb(32, 32, 32);
+        color: rgb(200, 200, 200);
+        border: 2px solid rgb(200, 200, 200);
+        border-radius: 8px;
+        width: 280px;
+      }
+      #tip-overlay-header {
+        border-bottom: 2px rgb(200, 200, 200) solid;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        padding: 8px 12px;
+        gap: 4px;
+      }
+      #tip-overlay-header-circle {
+        width: 4px;
+        height: 4px;
+        border-radius: 9999999px;
+        border: 2px solid rgb(200, 200, 200);
+      }
+      #tip-overlay-header-circle.filled {
+        background: rgb(200, 200, 200);
+      }
+      #tip-overlay-content {
+        padding: 8px;
+      }
+      #tip-overlay-content-message {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      #tip-overlay-content-amount {
+        font-size: 24px;
+        text-align: end;
+        margin: 0;
       }
       #container {
         width: 100vw;
@@ -61,7 +92,17 @@
       <video id="video1" autoplay></video>
       <video id="video2" autoplay></video>
       <canvas id="canvas"></canvas>
-      <div id="tip-overlay"></div>
+      <div id="tip-overlay">
+        <div id="tip-overlay-header">
+          <div id="tip-overlay-header-circle" class="filled"></div>
+          <div id="tip-overlay-header-circle"></div>
+          <div id="tip-overlay-header-circle"></div>
+        </div>
+        <div id="tip-overlay-content">
+          <p id="tip-overlay-content-message">This is a message.</p>
+          <p id="tip-overlay-content-amount">0.01 Ether</p>
+        </div>
+      </div>
       <div id="qr-code-container">
         <div id="qr-code"></div>
       </div>
@@ -148,8 +189,7 @@
             video: true,
           });
           const streamerAddress = window.ethereum.selectedAddress;
-          // const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`
-          const longUrl = "https://www.google.com";
+          const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`
           const shortenResponse = await fetch(
             `https://t.ly/api/v1/link/shorten`,
             {
