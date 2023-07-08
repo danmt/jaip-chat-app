@@ -21,18 +21,17 @@
       const messageInput = document.getElementById("message");
       const amountInput = document.getElementById("amount");
       const urlParams = new URLSearchParams(window.location.search);
-      const streamerAddress = urlParams.get('streamer');
+      const streamerAddress = urlParams.get("streamer");
+      const streamId = urlParams.get("id");
+      const baseUrl = "http://localhost:3000";
 
       async function run() {
         try {
-          const response = await fetch(
-            "http://localhost:3000/TipContract.json",
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const response = await fetch(`${baseUrl}/TipContract.json`, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
           const artifact = await response.json();
           const contract = TruffleContract(artifact);
           contract.setProvider(window.ethereum);
@@ -53,10 +52,14 @@
                 const instance = await contract.deployed();
 
                 // Send a tip
-                await instance.sendTip(streamerAddress, message, {
-                  from: tipperAddress,
-                  value: amount,
-                });
+                await instance.sendTip(
+                  streamerAddress,
+                  JSON.stringify({ id: streamId, content: message }),
+                  {
+                    from: tipperAddress,
+                    value: amount,
+                  }
+                );
 
                 console.log("Transaction sent");
               } catch (error) {

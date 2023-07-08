@@ -68,6 +68,7 @@
     </div>
 
     <script>
+      const streamId = crypto.randomUUID();
       const video1Element = document.getElementById("video1");
       const video2Element = document.getElementById("video2");
       const canvasElement = document.getElementById("canvas");
@@ -76,7 +77,7 @@
       const ctx = canvasElement.getContext("2d");
       const shortenerAccessToken =
         "peFSN91s3nuGvxzpmnZDbFWc1cgYjaiYcGnli3jZANczfBmNKMReo1KKz8Td";
-      const shortenerDoman = "https://t.ly";
+      const shortenerDoman = "https://t.ly/";
       const baseUrl = "http://localhost:3000";
 
       // Tip queue
@@ -147,7 +148,7 @@
             video: true,
           });
           const streamerAddress = window.ethereum.selectedAddress;
-          // const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}`
+          // const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`
           const longUrl = "https://www.google.com";
           const shortenResponse = await fetch(
             `https://t.ly/api/v1/link/shorten`,
@@ -192,10 +193,9 @@
               return;
             }
 
-            if (
-              response.args.to.toLowerCase() !==
-              window.ethereum.selectedAddress.toLowerCase()
-            ) {
+            const { id, content } = JSON.parse(response.args.message);
+
+            if (id !== streamId) {
               return;
             }
 
@@ -207,7 +207,7 @@
 
             // Add to queue
             tipsQueue.push({
-              message: response.args.message,
+              message: content,
               amount: tipAmountInEther,
             });
             processQueue();
