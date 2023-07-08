@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Screen and Camera Streaming</title>
+    <script src="https://cdn.jsdelivr.net/npm/@truffle/contract@4.3.40/dist/truffle-contract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+      #video1,
+      #video2 {
+        position: absolute;
+        visibility: hidden;
+      }
+      #video2 {
+        left: 20px;
+        bottom: 20px;
+        width: 200px;
+        height: 200px;
+        visibility: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="video1" autoplay></video>
+    <video id="video2" autoplay></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const video1 = document.getElementById("video1");
+      const video2 = document.getElementById("video2");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      function draw() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.drawImage(video1, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(draw);
+      }
+
+      async function run() {
+        try {
+          const response = await fetch(
+            "http://localhost:3000/TipContract.json",
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          const artifact = await response.json();
+          const contract = TruffleContract(artifact);
+          contract.setProvider(window.ethereum);
+          const web3 = new Web3();
+          const camStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 200, height: 200 },
+            audio: false,
+          });
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+          });
+
+          video2.srcObject = camStream;
+          video1.srcObject = screenStream;
+          video1.onloadedmetadata = draw;
+
+          console.log('saul goodman')
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      run();
+    </script>
+  </body>
+</html>

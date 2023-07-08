@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Jaip Chat Tipping</title>
+    <script src="https://cdn.jsdelivr.net/npm/@truffle/contract@4.3.40/dist/truffle-contract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <h1>Send a Tip</h1>
+
+    <label for="message">Message:</label><br />
+    <input type="text" id="message" name="message" /><br />
+
+    <label for="amount">Tip Amount (ETH):</label><br />
+    <input type="text" id="amount" name="amount" /><br />
+
+    <button id="sendTip">Send Tip</button>
+
+    <script>
+      const sendTipButton = document.getElementById("sendTip");
+      const messageInput = document.getElementById("message");
+      const amountInput = document.getElementById("amount");
+
+      async function run() {
+        try {
+          const response = await fetch(
+            "http://localhost:3000/TipContract.json",
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          const artifact = await response.json();
+          const contract = TruffleContract(artifact);
+          contract.setProvider(window.ethereum);
+          const web3 = new Web3();
+
+          sendTipButton.addEventListener("click", async () => {
+            if (window.ethereum) {
+              try {
+                // Request account access
+                const accounts = await window.ethereum.request({
+                  method: "eth_requestAccounts",
+                });
+
+                const message = messageInput.value;
+                const amount = web3.utils.toWei(amountInput.value, "ether");
+
+                // Get deployed contract
+                let instance = await contract.deployed();
+
+                // Send a tip
+                await instance.sendTip(message, {
+                  from: accounts[0],
+                  value: amount,
+                });
+
+                console.log("Transaction sent");
+              } catch (error) {
+                // User denied account access or transaction failed
+                console.error("Error: ", error);
+              }
+            } else {
+              console.error(
+                "Non-Ethereum browser detected. You should consider installing MetaMask!"
+              );
+            }
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      run();
+    </script>
+  </body>
+</html>
