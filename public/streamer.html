@@ -114,7 +114,9 @@
       const video2Element = document.getElementById("video2");
       const canvasElement = document.getElementById("canvas");
       const tipOverlayElement = document.getElementById("tip-overlay");
-      const tipOverlayContentElement = document.getElementById("tip-overlay-content");
+      const tipOverlayContentElement = document.getElementById(
+        "tip-overlay-content"
+      );
       const qrCodeElement = document.getElementById("qr-code");
       const ctx = canvasElement.getContext("2d");
       const shortenerAccessToken =
@@ -190,11 +192,12 @@
           const screenStream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
           });
-          const streamerAddress = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`
+          const streamerAddress = await window.ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`;
           console.log("Go to: ", longUrl);
-          /**
-           const shortenResponse = await fetch(
+          const shortenResponse = await fetch(
             `https://t.ly/api/v1/link/shorten`,
             {
               method: "POST",
@@ -218,8 +221,6 @@
           );
           const { short_url: shortUrl } = await shortenResponse.json();
 
-           **/ 
-          shortUrl = longUrl;
           const qrCode = new QRCode(qrCodeElement, {
             text: shortUrl,
             width: 128,
