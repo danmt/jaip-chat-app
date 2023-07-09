@@ -114,12 +114,14 @@
       const video2Element = document.getElementById("video2");
       const canvasElement = document.getElementById("canvas");
       const tipOverlayElement = document.getElementById("tip-overlay");
+      const tipOverlayContentElement = document.getElementById("tip-overlay-content");
       const qrCodeElement = document.getElementById("qr-code");
       const ctx = canvasElement.getContext("2d");
       const shortenerAccessToken =
         "peFSN91s3nuGvxzpmnZDbFWc1cgYjaiYcGnli3jZANczfBmNKMReo1KKz8Td";
       const shortenerDoman = "https://t.ly/";
-      const baseUrl = "http://localhost:3000";
+      //const baseUrl = "http://localhost:3000";
+      const baseUrl = "https://jaip.chat";
 
       // Tip queue
       const tipsQueue = [];
@@ -142,7 +144,7 @@
         if (tipsQueue.length > 0 && !isProcessingQueue) {
           isProcessingQueue = true;
           const { message, amount } = tipsQueue.shift();
-          tipOverlayElement.innerHTML = `<p>${message}</p><p>Tip: ${amount} Ether</p>`;
+          tipOverlayContentElement.innerHTML = `<p id="tip-overlay-content-message"> ${message}</p><p id="tip-overlay-content-amount">${amount} Ether</p>`;
 
           // Slide in animation
           tipOverlayElement.animate(
@@ -188,9 +190,11 @@
           const screenStream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
           });
-          const streamerAddress = window.ethereum.selectedAddress;
+          const streamerAddress = await window.ethereum.request({ method: 'eth_requestAccounts' });
           const longUrl = `${baseUrl}/tipper.html?streamer=${streamerAddress}&id=${streamId}`
-          const shortenResponse = await fetch(
+          console.log("Go to: ", longUrl);
+          /**
+           const shortenResponse = await fetch(
             `https://t.ly/api/v1/link/shorten`,
             {
               method: "POST",
@@ -214,6 +218,8 @@
           );
           const { short_url: shortUrl } = await shortenResponse.json();
 
+           **/ 
+          shortUrl = longUrl;
           const qrCode = new QRCode(qrCodeElement, {
             text: shortUrl,
             width: 128,
