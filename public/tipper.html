@@ -4,26 +4,108 @@
     <title>Jaip Chat Tipping</title>
     <script src="https://cdn.jsdelivr.net/npm/@truffle/contract@4.3.40/dist/truffle-contract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+      #send-tip-container {
+        background: rgb(32, 32, 32);
+        color: rgb(200, 200, 200);
+        border: 2px solid rgb(200, 200, 200);
+        border-radius: 8px;
+        width: 280px;
+        margin: 320px auto 0px auto;
+      }
+      #send-tip-header {
+        border-bottom: 2px rgb(200, 200, 200) solid;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        padding: 8px 12px;
+        gap: 4px;
+      }
+      #send-tip-header-circle {
+        width: 4px;
+        height: 4px;
+        border-radius: 9999999px;
+        border: 2px solid rgb(200, 200, 200);
+      }
+      #send-tip-header-circle.filled {
+        background: rgb(200, 200, 200);
+      }
+      #send-tip-content {
+        padding: 8px;
+      }
+      #send-tip-title {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      #send-tip-form-message,
+      #send-tip-form-amount {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgb(16, 16, 16);
+        padding: 4px;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: 2px solid rgb(240, 240, 240);
+        color: rgb(240, 240, 240);
+        margin-bottom: 16px;
+      }
+      #send-tip-form-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      #send-tip-form-controls > button {
+        padding: 4px 8px;
+        background: rgb(8, 8, 8);
+        color: rgb(240, 240, 240);
+        border: 2px rgb(240, 240, 240) solid;
+        cursor: pointer;
+      }
+      body {
+        background: rgb(8, 8, 8);
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        margin: 0;
+      }
+    </style>
   </head>
   <body>
-    <h1>Send a Tip</h1>
+    <div id="send-tip-container">
+      <div id="send-tip-header">
+        <div id="send-tip-header-circle" class="filled"></div>
+        <div id="send-tip-header-circle"></div>
+        <div id="send-tip-header-circle"></div>
+      </div>
 
-    <label for="message">Message:</label><br />
-    <input type="text" id="message" name="message" /><br />
+      <div id="send-tip-content">
+        <h1 id="send-tip-title">Send a Tip</h1>
 
-    <label for="amount">Tip Amount (ETH):</label><br />
-    <input type="text" id="amount" name="amount" /><br />
+        <form id="send-tip-form">
+          <label for="message">Message:</label><br />
+          <input type="text" id="send-tip-form-message" name="message" /><br />
 
-    <button id="sendTip">Send Tip</button>
+          <label for="amount">Tip Amount (ETH):</label><br />
+          <input type="number" step="any" id="send-tip-form-amount" name="amount" /><br />
+
+          <div id="send-tip-form-controls">
+            <button>Send Tip</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script>
-      const sendTipButton = document.getElementById("sendTip");
-      const messageInput = document.getElementById("message");
-      const amountInput = document.getElementById("amount");
+      const messageInput = document.getElementById("send-tip-form-message");
+      const amountInput = document.getElementById("send-tip-form-amount");
+      const sendTipForm = document.getElementById("send-tip-form");
       const urlParams = new URLSearchParams(window.location.search);
       const streamerAddress = urlParams.get("streamer");
       const streamId = urlParams.get("id");
-      //const baseUrl = "http://localhost:3000";
+      // const baseUrl = "http://localhost:3000";
       const baseUrl = "https://jaip.chat";
 
       async function run() {
@@ -38,8 +120,10 @@
           contract.setProvider(window.ethereum);
           const web3 = new Web3();
 
-          sendTipButton.addEventListener("click", async () => {
-            if (window.ethereum) {
+          sendTipForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            if (window.ethereum && messageInput.value && amountInput.value) {
               try {
                 // Request account access
                 const accounts = await window.ethereum.request({
